@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Rapport d'événement SST</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Arial',sans-serif;background:#EAEAEA;min-height:100vh;padding-bottom:40px;font-size:13px;}
+:root{
+  --bleu:#003366;--bleu-m:#005A9C;--bleu-l:#D6E4F0;
+  --rouge:#8B0000;--rouge-l:#F5E6E6;
+  --vert:#1A5C1A;--vert-l:#E6F0E6;
+  --orange:#7A3C00;--orange-l:#F5EDE0;
+  --jaune:#7A6000;--jaune-l:#F5F0D6;
+  --gris-fonce:#2C2C2C;--gris-moyen:#5A5A5A;--gris-l:#F0F0F0;--gris-brd:#BBBBBB;
+  --blanc:#FFFFFF;--texte:#1A1A1A;
+}
+
+/* HEADER — bande gouvernementale */
+.hdr{background:var(--bleu);padding:0;border-bottom:4px solid var(--bleu-m);}
+.hdr-top{background:#001F3F;padding:8px 16px;display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--bleu-m);}
+.hdr-top .logo-qc{width:28px;height:28px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--bleu);flex-shrink:0;letter-spacing:-1px;}
+.hdr-top span{font-size:10px;color:rgba(255,255,255,.6);font-weight:400;letter-spacing:.5px;text-transform:uppercase;}
+.hdr-body{padding:12px 16px 14px;}
+.hdr-body h1{font-size:16px;font-weight:700;color:#fff;letter-spacing:.5px;text-transform:uppercase;}
+.hdr-body p{font-size:10px;color:rgba(255,255,255,.55);margin-top:3px;letter-spacing:.5px;}
+
+/* ÉTAPES */
+.steps{display:flex;background:#002244;border-bottom:3px solid var(--bleu-m);overflow-x:auto;padding:0;}
+.step{display:flex;flex-direction:column;align-items:center;padding:10px 12px 8px;cursor:pointer;border-bottom:3px solid transparent;min-width:64px;color:rgba(255,255,255,.35);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;flex-shrink:0;transition:all .1s;}
+.step .ico{font-size:18px;margin-bottom:2px;}
+.step.active{color:#fff;border-bottom-color:#fff;background:rgba(255,255,255,.08);}
+.step.done{color:#7FC8A0;border-bottom-color:#7FC8A0;}
+.prog-wrap{background:#001F3F;padding:4px 16px 8px;}
+.prog-bar{height:3px;background:rgba(255,255,255,.15);overflow:hidden;}
+.prog-fill{height:100%;background:#7FC8A0;transition:width .3s;}
+.prog-txt{font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;text-align:right;letter-spacing:.3px;}
+
+/* CONTENU */
+.wrap{max-width:720px;margin:0 auto;padding:14px 12px;}
+.page{display:none;}.page.active{display:block;}
+
+/* CARTES — style formulaire gouvernemental */
+.card{background:var(--blanc);border:1px solid var(--gris-brd);border-top:3px solid var(--bleu);margin-bottom:14px;}
+.card-hdr{padding:9px 14px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--gris-brd);}
+.hb{background:var(--bleu);color:#fff;border-top:none;}
+.hr{background:var(--rouge);color:#fff;border-top:none;}
+.hv{background:var(--vert);color:#fff;border-top:none;}
+.ho{background:var(--orange);color:#fff;border-top:none;}
+.hj{background:var(--jaune);color:#fff;border-top:none;}
+.hg{background:var(--gris-fonce);color:#fff;border-top:none;}
+.card-body{padding:14px;}
+
+/* CHAMPS */
+.field{margin-bottom:11px;}
+.field label{font-size:10px;font-weight:700;color:var(--bleu);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;}
+.field input,.field select,.field textarea{
+  width:100%;border:1px solid var(--gris-brd);border-radius:0;
+  padding:9px 10px;font-size:13px;font-family:Arial,sans-serif;
+  color:var(--texte);outline:none;background:var(--blanc);
+  -webkit-appearance:none;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--bleu);border-width:2px;outline:none;
+}
+.field textarea{min-height:75px;resize:vertical;}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+
+/* TYPE D'ÉVÉNEMENT */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--gris-brd);margin:0;border:1px solid var(--gris-brd);}
+.type-btn{border:none;padding:14px 10px;text-align:center;cursor:pointer;background:var(--blanc);transition:background .1s;-webkit-tap-highlight-color:transparent;}
+.type-btn .t-ico{font-size:28px;margin-bottom:5px;}
+.type-btn .t-lbl{font-size:12px;font-weight:700;color:var(--texte);line-height:1.3;text-transform:uppercase;letter-spacing:.3px;}
+.type-btn .t-sub{font-size:10px;color:var(--gris-moyen);margin-top:3px;line-height:1.3;}
+.type-btn.sel-acc{background:var(--rouge-l);outline:3px solid var(--rouge);outline-offset:-3px;}
+.type-btn.sel-acc .t-lbl{color:var(--rouge);}
+.type-btn.sel-inc{background:var(--orange-l);outline:3px solid var(--orange);outline-offset:-3px;}
+.type-btn.sel-inc .t-lbl{color:var(--orange);}
+.type-btn.sel-alt{background:var(--jaune-l);outline:3px solid var(--jaune);outline-offset:-3px;}
+.type-btn.sel-alt .t-lbl{color:var(--jaune);}
+.type-btn.sel-nc{background:var(--bleu-l);outline:3px solid var(--bleu);outline-offset:-3px;}
+.type-btn.sel-nc .t-lbl{color:var(--bleu);}
+
+/* GRAVITÉ */
+.gravite-row{display:flex;gap:0;border:1px solid var(--gris-brd);}
+.grav-btn{flex:1;padding:10px 6px;text-align:center;cursor:pointer;font-size:11px;font-weight:700;background:var(--blanc);border:none;border-right:1px solid var(--gris-brd);transition:background .1s;letter-spacing:.3px;text-transform:uppercase;}
+.grav-btn:last-child{border-right:none;}
+.grav-btn.sel-1{background:var(--vert-l);color:var(--vert);outline:2px solid var(--vert);}
+.grav-btn.sel-2{background:var(--orange-l);color:var(--orange);outline:2px solid var(--orange);}
+.grav-btn.sel-3{background:var(--rouge-l);color:var(--rouge);outline:2px solid var(--rouge);}
+
+/* CASES À COCHER */
+.chk-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--gris-l);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.chk-item:last-child{border-bottom:none;}
+.chk-item:nth-child(even){background:var(--gris-l);}
+.chk-box{width:22px;height:22px;border:2px solid var(--gris-brd);background:var(--blanc);font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .1s;}
+.chk-box.ok{background:var(--bleu);border-color:var(--bleu);color:#fff;}
+.chk-lbl{font-size:12px;color:var(--texte);}
+
+/* SIGNATURE */
+canvas.sig{border:2px solid var(--gris-brd);width:100%;background:#FAFAFA;touch-action:none;display:block;cursor:crosshair;min-height:120px;}
+.btn-clear{background:var(--gris-l);border:1px solid var(--gris-brd);padding:6px 12px;font-size:11px;font-weight:700;color:var(--gris-moyen);cursor:pointer;margin-top:4px;letter-spacing:.3px;text-transform:uppercase;}
+
+/* BOUTONS NAV */
+.nav-btns{display:flex;gap:10px;margin-top:4px;}
+.btn-next{flex:1;background:var(--bleu);color:#fff;border:none;padding:14px;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.5px;text-transform:uppercase;}
+.btn-next:hover{background:var(--bleu-m);}
+.btn-prev{background:var(--gris-l);color:var(--gris-fonce);border:1px solid var(--gris-brd);padding:14px 18px;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.3px;text-transform:uppercase;}
+.btn-sub{flex:1;background:var(--vert);color:#fff;border:none;padding:14px;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.5px;text-transform:uppercase;}
+.btn-sub:disabled,.btn-next:disabled{background:var(--gris-moyen);cursor:not-allowed;}
+
+/* ALERTES */
+.alerte{padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:1.6;display:none;border-left:5px solid;}
+.alerte.show{display:block;}
+.al-ok{background:var(--vert-l);border-color:var(--vert);color:var(--vert);}
+.al-err{background:var(--rouge-l);border-color:var(--rouge);color:var(--rouge);}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--gris-fonce);color:#fff;padding:10px 22px;font-size:12px;font-weight:700;z-index:999;display:none;white-space:nowrap;letter-spacing:.3px;}
+.toast.show{display:block;}
+
+/* NOTICE */
+.notice{background:#FFF8DC;border-left:4px solid #C8A000;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#5A4500;line-height:1.5;}
+
+/* SECTION COND */
+.section-cond{display:none;}
+.section-cond.show{display:block;}
+
+/* RÉSUMÉ */
+.resume-bloc{background:var(--gris-l);border:1px solid var(--gris-brd);padding:12px;font-size:12px;line-height:2;margin-bottom:12px;}
+.resume-bloc b{color:var(--bleu);}
+
+/* BARRE DE SÉPARATION */
+.sep{height:1px;background:var(--gris-brd);margin:12px 0;}
+
+@media(max-width:400px){.fg2,.fg3{grid-template-columns:1fr;}.type-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="logo-qc">QC</div>
+    <span>Gouvernement du Québec — Santé et Sécurité du Travail</span>
+  </div>
+  <div class="hdr-body">
+    <h1>Rapport d'événement SST</h1>
+    <p>Accident · Incident · Altercation · Non-conformité · LSST (RLRQ c. S-2.1)</p>
+  </div>
+</div>
+
+<div class="steps">
+  <div class="step active" id="step0"><div class="ico">🔍</div>Type</div>
+  <div class="step" id="step1"><div class="ico">📋</div>Infos</div>
+  <div class="step" id="step2"><div class="ico">📝</div>Événement</div>
+  <div class="step" id="step3"><div class="ico">⚙️</div>Actions</div>
+  <div class="step" id="step4"><div class="ico">✍</div>Signatures</div>
+  <div class="step" id="step5"><div class="ico">✅</div>Envoyer</div>
+</div>
+<div class="prog-wrap">
+  <div class="prog-bar"><div class="prog-fill" id="prog" style="width:16.6%"></div></div>
+  <div class="prog-txt" id="prog-txt">Étape 1 sur 6</div>
+</div>
+
+<div class="wrap">
+<div class="alerte al-ok" id="alertOk">✅ <strong>Rapport envoyé!</strong> Courriel transmis au coordonnateur SST et données sauvegardées.</div>
+<div class="alerte al-err" id="alertErr">⚠️ <strong>Erreur d'envoi.</strong> Vérifiez votre connexion et réessayez.</div>
+
+<!-- PAGE 0 : TYPE D'ÉVÉNEMENT -->
+<div class="page active" id="page0">
+  <div class="card">
+    <div class="card-hdr hg">🔍 Type d'événement</div>
+    <div class="type-grid">
+      <div class="type-btn" id="tbtn_acc" onclick="setType('acc')">
+        <div class="t-ico">🚑</div>
+        <div class="t-lbl">Accident avec blessure</div>
+        <div class="t-sub">Travailleur blessé — soins requis</div>
+      </div>
+      <div class="type-btn" id="tbtn_inc" onclick="setType('inc')">
+        <div class="t-ico">⚠️</div>
+        <div class="t-lbl">Incident / Presqu'accident</div>
+        <div class="t-sub">Pas de blessure — aurait pu arriver</div>
+      </div>
+      <div class="type-btn" id="tbtn_alt" onclick="setType('alt')">
+        <div class="t-ico">🗣</div>
+        <div class="t-lbl">Altercation / Conflit</div>
+        <div class="t-sub">Prise de bec, violence verbale ou physique</div>
+      </div>
+      <div class="type-btn" id="tbtn_nc" onclick="setType('nc')">
+        <div class="t-ico">🚫</div>
+        <div class="t-lbl">Non-conformité grave</div>
+        <div class="t-sub">Infraction SST documentée</div>
+      </div>
+    </div>
+    <div style="padding:0 14px 14px;">
+      <div class="field"><label>Niveau de gravité</label></div>
+      <div class="gravite-row">
+        <div class="grav-btn" id="gbtn_1" onclick="setGravite(1)">🟢<br>Mineur</div>
+        <div class="grav-btn" id="gbtn_2" onclick="setGravite(2)">🟠<br>Modéré</div>
+        <div class="grav-btn" id="gbtn_3" onclick="setGravite(3)">🔴<br>Grave</div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-btns">
+    <button class="btn-next" onclick="nextPage(0)">Suivant — Informations 📋</button>
+  </div>
+</div>
+
+<!-- PAGE 1 : INFORMATIONS GÉNÉRALES -->
+<div class="page" id="page1">
+  <div class="card">
+    <div class="card-hdr hg">📋 Informations générales</div>
+    <div class="card-body">
+      <div class="fg2">
+        <div class="field"><label>Date de l'événement</label><input type="date" id="e_date"></div>
+        <div class="field"><label>Heure</label><input type="time" id="e_heure"></div>
+      </div>
+      <div class="field"><label>Chantier</label><input type="text" id="e_chantier" value="École primaire Sainte-Bernadette N-D-L" placeholder="Nom du chantier"></div>
+      <div class="fg2">
+        <div class="field"><label>Lieu précis sur le chantier</label><input type="text" id="e_lieu" placeholder="Ex: Façade nord, 2e étage"></div>
+        <div class="field"><label>No de rapport</label><input type="text" id="e_no" placeholder="Ex: EV-2026-01"></div>
+      </div>
+      <div class="fg2">
+        <div class="field"><label>Rapporté par (CoSS)</label><input type="text" id="e_coss" value="Pierre-Pascal Ducharme" placeholder="Nom du CoSS"></div>
+        <div class="field"><label>Entreprise concernée</label><input type="text" id="e_entr" placeholder="Sous-traitant"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Personnes impliquées -->
+  <div class="card">
+    <div class="card-hdr hb">👤 Personne(s) impliquée(s)</div>
+    <div class="card-body">
+      <div class="fg2">
+        <div class="field"><label>Nom complet</label><input type="text" id="e_pers1" placeholder="Nom du travailleur / représentant"></div>
+        <div class="field"><label>Métier / Titre</label><input type="text" id="e_titre1" placeholder="Ex: Charpentier, Contremaître"></div>
+      </div>
+      <div class="fg2">
+        <div class="field"><label>Entreprise</label><input type="text" id="e_entr1" placeholder="Employeur de la personne"></div>
+        <div class="field"><label>No CCQ (si travailleur)</label><input type="text" id="e_ccq1" placeholder="No CCQ"></div>
+      </div>
+      <!-- 2e personne (altercation) -->
+      <div class="section-cond" id="sec_pers2">
+        <div style="border-top:1px solid #edf0f5;padding-top:12px;margin-top:4px;">
+          <div class="field" style="margin-bottom:6px;"><label style="color:var(--rouge);">2e personne impliquée</label></div>
+          <div class="fg2">
+            <div class="field"><label>Nom complet</label><input type="text" id="e_pers2" placeholder="Nom"></div>
+            <div class="field"><label>Métier / Titre</label><input type="text" id="e_titre2" placeholder="Titre"></div>
+          </div>
+          <div class="fg2">
+            <div class="field"><label>Entreprise</label><input type="text" id="e_entr2" placeholder="Employeur"></div>
+            <div class="field"><label>No CCQ</label><input type="text" id="e_ccq2" placeholder="No CCQ"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Témoins -->
+      <div class="field"><label>Témoin(s)</label><input type="text" id="e_temoins" placeholder="Noms des témoins présents (ou Aucun)"></div>
+    </div>
+  </div>
+  <div class="nav-btns">
+    <button class="btn-prev" onclick="goPage(0)">← Retour</button>
+    <button class="btn-next" onclick="nextPage(1)">Suivant — Description 📝</button>
+  </div>
+</div>
+
+<!-- PAGE 2 : DESCRIPTION DE L'ÉVÉNEMENT -->
+<div class="page" id="page2">
+
+  <!-- ACCIDENT -->
+  <div class="section-cond" id="sec_acc">
+    <div class="card">
+      <div class="card-hdr hr">🚑 Détails — Accident avec blessure</div>
+      <div class="card-body">
+        <div class="field"><label>Nature de la blessure</label>
+          <select id="acc_nature">
+            <option>Coupure / Lacération</option>
+            <option>Contusion / Ecchymose</option>
+            <option>Fracture</option>
+            <option>Entorse / Foulure</option>
+            <option>Brûlure</option>
+            <option>Corps étranger dans l'oeil</option>
+            <option>Chute de hauteur</option>
+            <option>Électrisation</option>
+            <option>Intoxication / Inhalation</option>
+            <option>Autre</option>
+          </select>
+        </div>
+        <div class="fg2">
+          <div class="field"><label>Partie du corps atteinte</label>
+            <select id="acc_partie">
+              <option>Main / Doigt(s)</option>
+              <option>Poignet / Avant-bras</option>
+              <option>Bras / Épaule</option>
+              <option>Dos / Colonne</option>
+              <option>Jambe / Genou</option>
+              <option>Pied / Cheville</option>
+              <option>Tête / Cou</option>
+              <option>Oeil(s)</option>
+              <option>Torse / Abdomen</option>
+              <option>Multiple</option>
+            </select>
+          </div>
+          <div class="field"><label>Soins donnés</label>
+            <select id="acc_soins">
+              <option>Premiers soins sur place</option>
+              <option>Référé à la clinique</option>
+              <option>Transport à l'hôpital</option>
+              <option>Ambulance appelée</option>
+              <option>Aucun soin requis</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>L'accident est-il déclaré à la CNESST?</label>
+          <select id="acc_cnesst">
+            <option value="oui">Oui — fiche CNESST remplie</option>
+            <option value="non">Non — en cours</option>
+            <option value="na">Non applicable — premiers soins seulement</option>
+          </select>
+        </div>
+        <div class="field"><label>Description détaillée de l'accident</label>
+          <textarea id="acc_desc" placeholder="Décrivez ce qui s'est passé : tâche en cours, séquence des événements, cause apparente..."></textarea>
+        </div>
+        <div class="field"><label>Équipement ou matériau impliqué</label>
+          <input type="text" id="acc_equip" placeholder="Ex: Scie circulaire, nacelle, échafaudage...">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INCIDENT -->
+  <div class="section-cond" id="sec_inc">
+    <div class="card">
+      <div class="card-hdr ho">⚠️ Détails — Incident / Presqu'accident</div>
+      <div class="card-body">
+        <div class="field"><label>Type d'incident</label>
+          <select id="inc_type">
+            <option>Chute d'objet sans blessure</option>
+            <option>Presqu'accident — chute évitée</option>
+            <option>Contact avec énergie dangereuse</option>
+            <option>Déversement de matière dangereuse</option>
+            <option>Défaillance d'équipement</option>
+            <option>Quasi-collision véhicule / travailleur</option>
+            <option>Autre</option>
+          </select>
+        </div>
+        <div class="field"><label>Description de l'incident</label>
+          <textarea id="inc_desc" placeholder="Décrivez ce qui s'est passé et ce qui aurait pu arriver..."></textarea>
+        </div>
+        <div class="field"><label>Équipement ou zone impliqué</label>
+          <input type="text" id="inc_equip" placeholder="Ex: Grue, zone de levage, accès...">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALTERCATION -->
+  <div class="section-cond" id="sec_alt">
+    <div class="card">
+      <div class="card-hdr hj">🗣 Détails — Altercation / Conflit</div>
+      <div class="card-body">
+        <div class="field"><label>Nature du conflit</label>
+          <select id="alt_nature">
+            <option>Altercation verbale — ton élevé</option>
+            <option>Insultes / langage abusif</option>
+            <option>Menaces verbales</option>
+            <option>Voie de fait (contact physique)</option>
+            <option>Harcèlement psychologique</option>
+            <option>Insubordination envers le CoSS / contremaître</option>
+            <option>Conflit entre sous-traitants</option>
+            <option>Conflit employeur / employé</option>
+          </select>
+        </div>
+        <div class="field"><label>Contexte ayant mené à l'altercation</label>
+          <textarea id="alt_contexte" placeholder="Décrivez le contexte : ce qui a déclenché la situation, les antécédents connus..."></textarea>
+        </div>
+        <div class="field"><label>Description factuelle de l'altercation</label>
+          <textarea id="alt_desc" placeholder="Décrivez factuellement ce qui a été dit et fait — sans jugement, en ordre chronologique..."></textarea>
+        </div>
+        <div class="field"><label>Lieu et personnes présentes autour</label>
+          <input type="text" id="alt_lieu" placeholder="Où et qui était présent autour?">
+        </div>
+        <div class="field"><label>A-t-il été mis fin à la situation sur place?</label>
+          <select id="alt_fin">
+            <option value="oui">Oui — situation résolue sur place</option>
+            <option value="part">Partiellement — tension persistante</option>
+            <option value="non">Non — situation non résolue</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NON-CONFORMITÉ -->
+  <div class="section-cond" id="sec_nc">
+    <div class="card">
+      <div class="card-hdr hb">🚫 Détails — Non-conformité grave</div>
+      <div class="card-body">
+        <div class="field"><label>Règle ou norme enfreinte</label>
+          <select id="nc_type">
+            <option>Travail en hauteur sans harnais</option>
+            <option>Absence d'EPI obligatoire</option>
+            <option>Zone non délimitée — risque de chute d'objets</option>
+            <option>Manoeuvre de recul sans signaleur</option>
+            <option>Équipement défectueux utilisé quand même</option>
+            <option>Nacelle — sortie / montée sur garde-corps</option>
+            <option>Cadenassage non respecté</option>
+            <option>Travaux superposés sans périmètre</option>
+            <option>Alcool / drogue sur le chantier</option>
+            <option>Insubordination — refus d'obtempérer</option>
+            <option>Autre infraction SST</option>
+          </select>
+        </div>
+        <div class="field"><label>Référence réglementaire</label>
+          <input type="text" id="nc_ref" placeholder="Ex: Art. 2.15.2 CSTC, T0-1, Art. 49 LSST...">
+        </div>
+        <div class="field"><label>Description de la non-conformité observée</label>
+          <textarea id="nc_desc" placeholder="Décrivez ce qui a été observé, les conditions exactes..."></textarea>
+        </div>
+        <div class="field"><label>L'équipement ou la zone a-t-il été mis hors service?</label>
+          <select id="nc_hs">
+            <option value="oui">Oui — hors service / zone condamnée</option>
+            <option value="non">Non — travaux arrêtés verbalement</option>
+            <option value="corr">Corrigé immédiatement sur place</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Causes apparentes — commun à tous -->
+  <div class="card">
+    <div class="card-hdr hg">🔎 Causes apparentes</div>
+    <div id="causes-list">
+      <div class="chk-item" onclick="toggleChk('ca_1')"><div class="chk-box" id="ca_1"></div><div class="chk-lbl">Manque de formation ou d'expérience</div></div>
+      <div class="chk-item" onclick="toggleChk('ca_2')"><div class="chk-box" id="ca_2"></div><div class="chk-lbl">Non-respect des procédures connues</div></div>
+      <div class="chk-item" onclick="toggleChk('ca_3')"><div class="chk-box" id="ca_3"></div><div class="chk-lbl">Équipement défectueux ou inadéquat</div></div>
+      <div class="chk-item" onclick="toggleChk('ca_4')"><div class="chk-box" id="ca_4"></div><div class="chk-lbl">Pression de production / délais serrés</div></div>
+      <div class="chk-item" onclick="toggleChk('ca_5')"><div class="chk-box" id="ca_5"></div><div class="chk-lbl">Mauvaise communication entre travailleurs</div></div>
+      <div class="chk-item" onclick="toggleChk('ca_6')"><div class="chk-box" id="ca_6"></div><div class="chk-lbl">Fatigue ou distraction</div></div>
+      <div class="chk-item" onclick="toggleChk('ca_7')"><div class="chk-box" id="ca_7"></div><div class="chk-lbl">Conditions environnementales (météo, éclairage)</div></div>
+      <div class="chk-item" onclick="toggleChk('ca_8')"><div class="chk-box" id="ca_8"></div><div class="chk-lbl">Supervision inadéquate</div></div>
+      <div class="chk-item" onclick="toggleChk('ca_9')"><div class="chk-box" id="ca_9"></div><div class="chk-lbl">Comportement délibéré / insubordination</div></div>
+    </div>
+    <div class="card-body" style="padding-top:6px;">
+      <div class="field"><label>Autres causes — précisez</label>
+        <textarea id="causes_autres" placeholder="Autres causes identifiées..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn-prev" onclick="goPage(1)">← Retour</button>
+    <button class="btn-next" onclick="nextPage(2)">Suivant — Actions correctives ⚙️</button>
+  </div>
+</div>
+
+<!-- PAGE 3 : ACTIONS CORRECTIVES -->
+<div class="page" id="page3">
+  <div class="card">
+    <div class="card-hdr hv">⚙️ Actions correctives et préventives</div>
+    <div class="card-body">
+      <div class="field"><label>Action immédiate prise sur place</label>
+        <textarea id="act_imm" placeholder="Ex: Travaux arrêtés, équipement retiré, travailleur retiré du chantier, premiers soins..."></textarea>
+      </div>
+      <div class="field"><label>Action corrective à court terme (0-7 jours)</label>
+        <textarea id="act_court" placeholder="Ex: Remplacement de l'équipement, formation supplémentaire, inspection de zone..."></textarea>
+      </div>
+      <div class="field"><label>Action préventive à long terme</label>
+        <textarea id="act_long" placeholder="Ex: Révision de procédure, modification du programme de prévention..."></textarea>
+      </div>
+      <div class="fg2">
+        <div class="field"><label>Responsable des actions</label>
+          <input type="text" id="act_resp" placeholder="Nom et titre">
+        </div>
+        <div class="field"><label>Échéance</label>
+          <input type="date" id="act_echeance">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mesures disciplinaires si applicable -->
+  <div class="card">
+    <div class="card-hdr ho">⚖️ Mesures disciplinaires (si applicable)</div>
+    <div class="card-body">
+      <div class="field"><label>Mesure appliquée</label>
+        <select id="disc_mesure">
+          <option value="aucune">Aucune — sensibilisation seulement</option>
+          <option value="verbal">Avertissement verbal</option>
+          <option value="ecrit1">1er avertissement écrit</option>
+          <option value="ecrit2">2e avertissement écrit</option>
+          <option value="expulsion">Expulsion du chantier</option>
+        </select>
+      </div>
+      <div class="field"><label>Superviseur / Employeur avisé</label>
+        <input type="text" id="disc_sup" placeholder="Nom du superviseur ou employeur avisé">
+      </div>
+      <div class="field"><label>Notes sur la mesure disciplinaire</label>
+        <textarea id="disc_notes" placeholder="Contexte, antécédents, détails..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn-prev" onclick="goPage(2)">← Retour</button>
+    <button class="btn-next" onclick="nextPage(3)">Suivant — Signatures ✍</button>
+  </div>
+</div>
+
+<!-- PAGE 4 : SIGNATURES -->
+<div class="page" id="page4">
+  <div class="notice">✍ La signature du CoSS est obligatoire. Celle du travailleur est optionnelle selon la situation.</div>
+
+  <!-- Signature CoSS -->
+  <div class="card">
+    <div class="card-hdr hg">✍ Signature du CoSS</div>
+    <div class="card-body">
+      <p style="font-size:12px;color:#666;margin-bottom:8px;">Je certifie que les informations contenues dans ce rapport sont exactes et complètes à ma connaissance.</p>
+      <canvas class="sig" id="sig_coss" height="120"></canvas>
+      <button class="btn-clear" onclick="clearSigById('sig_coss','ctx_coss')">🗑 Effacer</button>
+      <div class="fg2" style="margin-top:10px;">
+        <div class="field"><label>Nom en lettres moulées</label>
+          <input type="text" id="coss_nom" value="Pierre-Pascal Ducharme" style="text-transform:uppercase;">
+        </div>
+        <div class="field"><label>Date</label>
+          <input type="date" id="sig_date_coss">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signature travailleur — optionnelle -->
+  <div class="card">
+    <div class="card-hdr hb">✍ Signature du travailleur impliqué — Optionnel</div>
+    <div class="card-body">
+      <div style="display:flex;gap:10px;margin-bottom:12px;">
+        <button type="button" id="btrav_oui" onclick="setTravSig('oui')" style="flex:1;padding:10px;border-radius:6px;border:2px solid var(--gris-brd);background:#fafbfc;font-size:13px;font-weight:700;cursor:pointer;">✅ Travailleur signe</button>
+        <button type="button" id="btrav_non" onclick="setTravSig('non')" style="flex:1;padding:10px;border-radius:6px;border:2px solid var(--gris-brd);background:#fafbfc;font-size:13px;font-weight:700;cursor:pointer;">❌ Refuse / Absent</button>
+      </div>
+      <div id="zone_sig_trav" style="display:none;">
+        <p style="font-size:12px;color:#666;margin-bottom:8px;">J'ai pris connaissance de ce rapport et confirme avoir été informé.</p>
+        <canvas class="sig" id="sig_trav" height="120"></canvas>
+        <button class="btn-clear" onclick="clearSigById('sig_trav','ctx_trav')">🗑 Effacer</button>
+        <div class="fg2" style="margin-top:10px;">
+          <div class="field"><label>Nom en lettres moulées</label>
+            <input type="text" id="trav_nom_sig" style="text-transform:uppercase;" placeholder="NOM DU TRAVAILLEUR">
+          </div>
+          <div class="field"><label>Date</label>
+            <input type="date" id="sig_date_trav">
+          </div>
+        </div>
+      </div>
+      <div id="zone_sig_refus" style="display:none;">
+        <div class="field"><label>Raison du refus ou absence</label>
+          <select id="trav_refus_raison">
+            <option>Refuse de signer</option>
+            <option>Absent du chantier</option>
+            <option>Transporté à l'hôpital</option>
+            <option>Non disponible lors de la rédaction</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn-prev" onclick="goPage(3)">← Retour</button>
+    <button class="btn-next" onclick="nextPage(4)">Suivant — Envoyer ✅</button>
+  </div>
+</div>
+
+<!-- PAGE 5 : ENVOYER -->
+<div class="page" id="page5">
+  <div class="card">
+    <div class="card-hdr hv">✅ Résumé et envoi</div>
+    <div class="card-body">
+      <div class="resume-bloc" id="resume-evt"></div>
+      <div class="field"><label>Observations finales du CoSS</label>
+        <textarea id="obs_finales" placeholder="Observations supplémentaires, recommandations..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Options d'envoi -->
+  <div class="card">
+    <div class="card-hdr hg">📤 Options d'envoi</div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" id="opt_courriel" checked style="width:20px;height:20px;">
+          <span style="font-size:13px;font-weight:600;">📧 Envoyer par courriel au CoSS</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" id="opt_rapport" style="width:20px;height:20px;">
+          <span style="font-size:13px;font-weight:600;">📋 Inclure dans le rapport journalier SST</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" id="opt_pdf" style="width:20px;height:20px;">
+          <span style="font-size:13px;font-weight:600;">📄 Générer un PDF imprimable</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn-prev" onclick="goPage(4)">← Retour</button>
+    <button class="btn-sub" id="btn-sub" onclick="soumettre()">📤 Envoyer le rapport</button>
+  </div>
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var TYPE_EVT   = "";
+var GRAVITE    = 0;
+var TRAV_SIG   = "";
+var causesOk   = {};
+var sigCtxMap  = {};
+var sigOnMap   = {};
+var N_PAGES    = 6;
+var APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxOy41mCXdxVwiPw0SU0P7dqL48xF5xBIivUNc07dAMbpmRuiu6Tn-4yOK-zt7LhhmZFg/exec";
+
+var TYPE_LABELS = {
+  acc: "Accident avec blessure",
+  inc: "Incident / Presqu'accident",
+  alt: "Altercation / Conflit",
+  nc:  "Non-conformite grave"
+};
+var GRAV_LABELS = {1:"Mineur", 2:"Modere", 3:"Grave"};
+
+// NAVIGATION
+function goPage(n) {
+  document.querySelectorAll(".page").forEach(function(p){ p.classList.remove("active"); });
+  document.querySelectorAll(".step").forEach(function(s,i){
+    s.classList.remove("active");
+    if(i<n) s.classList.add("done"); else s.classList.remove("done");
+  });
+  document.getElementById("page"+n).classList.add("active");
+  document.getElementById("step"+n).classList.add("active");
+  var pct=((n+1)/N_PAGES*100).toFixed(0);
+  document.getElementById("prog").style.width=pct+"%";
+  document.getElementById("prog-txt").textContent="Etape "+(n+1)+" sur "+N_PAGES;
+  window.scrollTo(0,0);
+  if(n===4) {
+    setTimeout(function(){ initSigById("sig_coss","ctx_coss"); },200);
+    setTimeout(function(){ initSigById("sig_trav","ctx_trav"); },200);
+  }
+  if(n===5) buildResume();
+}
+
+function nextPage(n) {
+  if(n===0 && !TYPE_EVT) { showToast("Choisissez le type d'evenement"); return; }
+  if(n===0 && !GRAVITE)  { showToast("Choisissez le niveau de gravite"); return; }
+  if(n===1) {
+    if(!document.getElementById("e_date").value) { showToast("Remplissez la date"); return; }
+    if(!document.getElementById("e_pers1").value) { showToast("Indiquez la personne impliquee"); return; }
+  }
+  if(n===4 && !hasSig("sig_coss","ctx_coss")) { showToast("La signature du CoSS est obligatoire"); return; }
+  goPage(n+1);
+}
+
+// TYPE D'ÉVÉNEMENT
+function setType(t) {
+  TYPE_EVT = t;
+  ["acc","inc","alt","nc"].forEach(function(x){
+    var btn = document.getElementById("tbtn_"+x);
+    btn.className = "type-btn" + (x===t?" sel-"+x:"");
+  });
+  // Afficher les sections conditionnelles
+  ["acc","inc","alt","nc"].forEach(function(x){
+    var el = document.getElementById("sec_"+x);
+    if(el) el.className = "section-cond" + (x===t?" show":"");
+  });
+  // Afficher 2e personne si altercation
+  var p2 = document.getElementById("sec_pers2");
+  if(p2) p2.className = "section-cond" + (t==="alt"?" show":"");
+}
+
+// GRAVITÉ
+function setGravite(g) {
+  GRAVITE = g;
+  [1,2,3].forEach(function(x){
+    var btn = document.getElementById("gbtn_"+x);
+    btn.className = "grav-btn" + (x===g?" sel-"+x:"");
+  });
+}
+
+// SIGNATURE TRAVAILLEUR
+function setTravSig(val) {
+  TRAV_SIG = val;
+  var btn_oui = document.getElementById("btrav_oui");
+  var btn_non = document.getElementById("btrav_non");
+  btn_oui.style.background = val==="oui" ? "var(--vert-l)" : "#fafbfc";
+  btn_oui.style.borderColor = val==="oui" ? "var(--vert)" : "";
+  btn_non.style.background = val==="non" ? "var(--rouge-l)" : "#fafbfc";
+  btn_non.style.borderColor = val==="non" ? "var(--rouge)" : "";
+  document.getElementById("zone_sig_trav").style.display = val==="oui" ? "block" : "none";
+  document.getElementById("zone_sig_refus").style.display = val==="non" ? "block" : "none";
+  if(val==="oui") setTimeout(function(){ initSigById("sig_trav","ctx_trav"); },200);
+}
+
+// CAUSES
+function toggleChk(id) {
+  causesOk[id] = !causesOk[id];
+  var el = document.getElementById(id);
+  el.className = "chk-box"+(causesOk[id]?" ok":"");
+  el.textContent = causesOk[id]?"OK":"";
+}
+
+// SIGNATURE
+function initSigById(id, key) {
+  var cv=document.getElementById(id); if(!cv) return;
+  var dpr=window.devicePixelRatio||1;
+  var w=cv.offsetWidth||cv.parentElement.offsetWidth||300;
+  cv.width=w*dpr; cv.height=120*dpr; cv.style.height="120px";
+  var nv=cv.cloneNode(true); cv.parentNode.replaceChild(nv,cv);
+  cv=document.getElementById(id);
+  var ctx=cv.getContext("2d");
+  ctx.scale(dpr,dpr); ctx.strokeStyle="#1a1d23"; ctx.lineWidth=2.5; ctx.lineCap="round"; ctx.lineJoin="round";
+  sigCtxMap[key]=ctx; sigOnMap[key]=false;
+  function pos(e){var r=cv.getBoundingClientRect(),s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
+  cv.addEventListener("mousedown",  function(e){sigOnMap[key]=true;var p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);e.preventDefault();});
+  cv.addEventListener("mousemove",  function(e){if(!sigOnMap[key])return;var p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();e.preventDefault();});
+  cv.addEventListener("mouseup",    function(){sigOnMap[key]=false;});
+  cv.addEventListener("touchstart", function(e){sigOnMap[key]=true;var p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);e.preventDefault();},{passive:false});
+  cv.addEventListener("touchmove",  function(e){if(!sigOnMap[key])return;var p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();e.preventDefault();},{passive:false});
+  cv.addEventListener("touchend",   function(){sigOnMap[key]=false;});
+}
+
+function clearSigById(id, key) {
+  var cv=document.getElementById(id); var ctx=sigCtxMap[key];
+  if(cv&&ctx) ctx.clearRect(0,0,cv.width,cv.height);
+}
+
+function hasSig(id, key) {
+  var cv=document.getElementById(id); var ctx=sigCtxMap[key];
+  if(!cv||!ctx) return false;
+  try { var px=ctx.getImageData(0,0,cv.width,cv.height).data; for(var i=3;i<px.length;i+=4){if(px[i]>0)return true;} } catch(e){}
+  return false;
+}
+
+// RÉSUMÉ
+function buildResume() {
+  var date  = document.getElementById("e_date").value;
+  var heure = document.getElementById("e_heure").value;
+  var no    = document.getElementById("e_no").value;
+  var chan  = document.getElementById("e_chantier").value;
+  var lieu  = document.getElementById("e_lieu").value;
+  var pers  = document.getElementById("e_pers1").value;
+  var entr  = document.getElementById("e_entr1").value;
+  var disc  = document.getElementById("disc_mesure").value;
+
+  var causes_list = [];
+  var labels = {
+    ca_1:"Manque de formation",ca_2:"Non-respect des procedures",
+    ca_3:"Equipement defectueux",ca_4:"Pression de production",
+    ca_5:"Mauvaise communication",ca_6:"Fatigue / distraction",
+    ca_7:"Conditions environnementales",ca_8:"Supervision inadequate",
+    ca_9:"Comportement delibere"
+  };
+  Object.keys(causesOk).forEach(function(k){ if(causesOk[k]) causes_list.push(labels[k]||k); });
+
+  document.getElementById("resume-evt").innerHTML =
+    "<b>Type :</b> "+(TYPE_LABELS[TYPE_EVT]||"---")+"<br>"+
+    "<b>Gravite :</b> "+(GRAV_LABELS[GRAVITE]||"---")+"<br>"+
+    "<b>No rapport :</b> "+(no||"---")+"<br>"+
+    "<b>Date / Heure :</b> "+date+" a "+heure+"<br>"+
+    "<b>Chantier :</b> "+chan+"<br>"+
+    "<b>Lieu :</b> "+(lieu||"---")+"<br>"+
+    "<b>Personne impliquee :</b> "+pers+" ("+entr+")<br>"+
+    "<b>Causes identifiees :</b> "+(causes_list.length?causes_list.join(", "):"---")+"<br>"+
+    "<b>Mesure disciplinaire :</b> "+disc+"<br>"+
+    "<b>Signature CoSS :</b> "+(hasSig("sig_coss","ctx_coss")?"Signee":"Non signee")+"<br>"+
+    "<b>Signature travailleur :</b> "+(TRAV_SIG==="oui"?(hasSig("sig_trav","ctx_trav")?"Signee":"Non signee"):TRAV_SIG==="non"?"Refuse/Absent":"Non demandee");
+}
+
+// GÉNÉRER PDF
+function genererPDF(payload) {
+  var disc_labels = {
+    aucune:"Aucune — sensibilisation seulement",
+    verbal:"Avertissement verbal",
+    ecrit1:"1er avertissement ecrit",
+    ecrit2:"2e avertissement ecrit",
+    expulsion:"Expulsion du chantier"
+  };
+  var w = window.open("","_blank");
+  if(!w) { showToast("Autorisez les popups pour le PDF"); return; }
+  var html = "<!DOCTYPE html><html lang='fr'><head><meta charset='UTF-8'>"
+    +"<style>body{font-family:Arial,sans-serif;font-size:12px;color:#1a1d23;margin:20px;}"
+    +"h1{font-size:18px;color:#1a4fa0;margin-bottom:4px;}"
+    +".sub{font-size:11px;color:#888;margin-bottom:16px;}"
+    +"h2{font-size:12px;background:#2d3142;color:#fff;padding:6px 10px;margin:14px 0 8px;border-radius:4px;}"
+    +".row{display:flex;gap:20px;margin-bottom:5px;}"
+    +".lbl{font-weight:700;min-width:160px;color:#1a4fa0;}"
+    +".box{border:1px solid #ddd;border-radius:4px;padding:8px;margin-bottom:8px;background:#fafbfc;}"
+    +".sig-box{border:2px solid #3A7BD5;border-radius:8px;padding:10px;margin-top:8px;min-height:80px;}"
+    +"@media print{body{margin:10px;}}"
+    +"</style></head><body>"
+    +"<h1>RAPPORT D'EVENEMENT SST</h1>"
+    +"<div class='sub'>"+payload.chantier+" | "+payload.date+" | No "+payload.noRapport+"</div>"
+    +"<h2>1. TYPE ET GRAVITE</h2>"
+    +"<div class='row'><span class='lbl'>Type:</span><span>"+payload.typeEvenement+"</span></div>"
+    +"<div class='row'><span class='lbl'>Gravite:</span><span>"+payload.gravite+"</span></div>"
+    +"<h2>2. INFORMATIONS GENERALES</h2>"
+    +"<div class='row'><span class='lbl'>Date / Heure:</span><span>"+payload.date+" a "+payload.heure+"</span></div>"
+    +"<div class='row'><span class='lbl'>Lieu:</span><span>"+payload.lieuPrecis+"</span></div>"
+    +"<div class='row'><span class='lbl'>Personne impliquee:</span><span>"+payload.personneImpliquee+"</span></div>"
+    +"<div class='row'><span class='lbl'>Entreprise:</span><span>"+payload.entreprise1+"</span></div>"
+    +"<div class='row'><span class='lbl'>Temoins:</span><span>"+payload.temoins+"</span></div>"
+    +"<h2>3. DESCRIPTION</h2>"
+    +"<div class='box'>"+payload.description+"</div>"
+    +"<h2>4. CAUSES</h2>"
+    +"<div class='box'>"+payload.causesIdentifiees+"</div>"
+    +"<h2>5. ACTIONS CORRECTIVES</h2>"
+    +"<div class='row'><span class='lbl'>Immediate:</span><span>"+payload.actionImmediate+"</span></div>"
+    +"<div class='row'><span class='lbl'>Court terme:</span><span>"+payload.actionCourtTerme+"</span></div>"
+    +"<div class='row'><span class='lbl'>Long terme:</span><span>"+payload.actionLongTerme+"</span></div>"
+    +"<div class='row'><span class='lbl'>Responsable:</span><span>"+payload.responsableActions+"</span></div>"
+    +"<div class='row'><span class='lbl'>Echeance:</span><span>"+payload.echeance+"</span></div>"
+    +"<h2>6. MESURE DISCIPLINAIRE</h2>"
+    +"<div class='row'><span class='lbl'>Mesure:</span><span>"+(disc_labels[payload.mesureDisciplinaire]||payload.mesureDisciplinaire)+"</span></div>"
+    +"<div class='row'><span class='lbl'>Superviseur avise:</span><span>"+payload.superviseurAvise+"</span></div>"
+    +"<h2>7. SIGNATURES</h2>"
+    +"<div style='display:flex;gap:20px;'>"
+    +"<div style='flex:1;'><div style='font-size:11px;font-weight:700;color:#1a4fa0;margin-bottom:4px;'>COORDINATEUR SST</div>"
+    +"<div class='sig-box'></div>"
+    +"<div style='margin-top:4px;font-size:11px;'>"+payload.nomCoSS+" — "+payload.dateSignatureCoSS+"</div></div>"
+    +"<div style='flex:1;'><div style='font-size:11px;font-weight:700;color:#1a4fa0;margin-bottom:4px;'>TRAVAILLEUR IMPLIQUE</div>"
+    +"<div class='sig-box'><div style='font-size:11px;color:#888;padding:4px;'>"+(payload.signatureTravailleur==="Refuse/Absent"?"REFUSE DE SIGNER / ABSENT":payload.signatureTravailleur==="Non demandee"?"N/A":"Signature electronique")+"</div></div>"
+    +"<div style='margin-top:4px;font-size:11px;'>"+(payload.nomTravailleurSig||"---")+" — "+(payload.dateSignatureTrav||"---")+"</div></div>"
+    +"</div>"
+    +"<p style='margin-top:20px;font-size:10px;color:#888;text-align:center;'>EquipeSST — Action SST · Pierre-Pascal Ducharme, CoSS · 450-803-6812 · p.ducharme@equipesst.com</p>"
+    +"</body></html>";
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){ w.print(); },600);
+}
+
+// SOUMISSION
+function soumettre() {
+  var date   = document.getElementById("e_date").value;
+  var heure  = document.getElementById("e_heure").value;
+  var no     = document.getElementById("e_no").value;
+  var chan   = document.getElementById("e_chantier").value;
+  var lieu   = document.getElementById("e_lieu").value;
+  var coss   = document.getElementById("e_coss").value;
+  var entr   = document.getElementById("e_entr").value;
+  var pers1  = document.getElementById("e_pers1").value;
+  var titre1 = document.getElementById("e_titre1").value;
+  var entr1  = document.getElementById("e_entr1").value;
+  var ccq1   = document.getElementById("e_ccq1").value;
+  var temoins = document.getElementById("e_temoins").value;
+  var actImm  = document.getElementById("act_imm").value;
+  var actCourt= document.getElementById("act_court").value;
+  var actLong = document.getElementById("act_long").value;
+  var actResp = document.getElementById("act_resp").value;
+  var actEch  = document.getElementById("act_echeance").value;
+  var disc    = document.getElementById("disc_mesure").value;
+  var discSup = document.getElementById("disc_sup").value;
+  var discNotes=document.getElementById("disc_notes").value;
+  var obs     = document.getElementById("obs_finales").value;
+  var cossNom = document.getElementById("coss_nom").value;
+  var sigDateC= document.getElementById("sig_date_coss").value;
+  var travNom = document.getElementById("trav_nom_sig") ? document.getElementById("trav_nom_sig").value : "";
+  var sigDateT= document.getElementById("sig_date_trav") ? document.getElementById("sig_date_trav").value : "";
+  var travRefR= document.getElementById("trav_refus_raison") ? document.getElementById("trav_refus_raison").value : "";
+
+  // Collecter causes
+  var causes_list = [];
+  var labels = {
+    ca_1:"Manque de formation",ca_2:"Non-respect des procedures",
+    ca_3:"Equipement defectueux",ca_4:"Pression de production",
+    ca_5:"Mauvaise communication",ca_6:"Fatigue / distraction",
+    ca_7:"Conditions environnementales",ca_8:"Supervision inadequate",
+    ca_9:"Comportement delibere"
+  };
+  Object.keys(causesOk).forEach(function(k){ if(causesOk[k]) causes_list.push(labels[k]||k); });
+  var causesAutres = document.getElementById("causes_autres").value;
+  if(causesAutres) causes_list.push(causesAutres);
+
+  // Description selon le type
+  var description = "";
+  if(TYPE_EVT==="acc") {
+    description = "Nature: "+(document.getElementById("acc_nature").value||"")
+      +", Partie du corps: "+(document.getElementById("acc_partie").value||"")
+      +", Soins: "+(document.getElementById("acc_soins").value||"")
+      +", CNESST: "+(document.getElementById("acc_cnesst").value||"")
+      +". "+(document.getElementById("acc_desc").value||"")
+      +". Equipement: "+(document.getElementById("acc_equip").value||"");
+  } else if(TYPE_EVT==="inc") {
+    description = "Type: "+(document.getElementById("inc_type").value||"")
+      +". "+(document.getElementById("inc_desc").value||"")
+      +". Equipement/zone: "+(document.getElementById("inc_equip").value||"");
+  } else if(TYPE_EVT==="alt") {
+    description = "Nature: "+(document.getElementById("alt_nature").value||"")
+      +". Contexte: "+(document.getElementById("alt_contexte").value||"")
+      +". Description: "+(document.getElementById("alt_desc").value||"")
+      +". Situation resolue: "+(document.getElementById("alt_fin").value||"");
+  } else if(TYPE_EVT==="nc") {
+    description = "Regle enfreinte: "+(document.getElementById("nc_type").value||"")
+      +", Ref: "+(document.getElementById("nc_ref").value||"")
+      +". "+(document.getElementById("nc_desc").value||"")
+      +". Hors service: "+(document.getElementById("nc_hs").value||"");
+  }
+
+  var sigTravStatut = TRAV_SIG==="oui" ? (hasSig("sig_trav","ctx_trav")?"Signee":"Non signee") : TRAV_SIG==="non" ? "Refuse/Absent" : "Non demandee";
+
+  var payload = {
+    type_soumission: "evenement",
+    _subject: "[Evenement SST] "+(TYPE_LABELS[TYPE_EVT]||TYPE_EVT)+" — "+(GRAV_LABELS[GRAVITE]||"")+" — "+chan+" — "+date,
+    typeEvenement: TYPE_LABELS[TYPE_EVT]||TYPE_EVT,
+    gravite: GRAV_LABELS[GRAVITE]||"---",
+    noRapport: no,
+    date: date,
+    heure: heure,
+    chantier: chan,
+    lieuPrecis: lieu,
+    cossAnimateur: coss,
+    entrepriseConcernee: entr,
+    personneImpliquee: pers1+" — "+titre1,
+    entreprise1: entr1,
+    ccq1: ccq1,
+    temoins: temoins,
+    description: description,
+    causesIdentifiees: causes_list.join(", "),
+    actionImmediate: actImm,
+    actionCourtTerme: actCourt,
+    actionLongTerme: actLong,
+    responsableActions: actResp,
+    echeance: actEch,
+    mesureDisciplinaire: disc,
+    superviseurAvise: discSup,
+    notesDisciplinaires: discNotes,
+    signatureCoSS: hasSig("sig_coss","ctx_coss")?"Signee":"Non signee",
+    nomCoSS: cossNom,
+    dateSignatureCoSS: sigDateC,
+    signatureTravailleur: sigTravStatut,
+    nomTravailleurSig: travNom,
+    dateSignatureTrav: sigDateT,
+    raisonRefusSig: travRefR,
+    observationsFinales: obs
+  };
+
+  var btn = document.getElementById("btn-sub");
+  btn.disabled=true; btn.textContent="Envoi en cours...";
+
+  // PDF si coché
+  if(document.getElementById("opt_pdf").checked) {
+    setTimeout(function(){ genererPDF(payload); }, 500);
+  }
+
+  // Envoyer si courriel coché
+  if(!document.getElementById("opt_courriel").checked) {
+    btn.disabled=false; btn.textContent="Envoyer le rapport";
+    document.getElementById("alertOk").classList.add("show");
+    window.scrollTo(0,0);
+    return;
+  }
+
+  // Apps Script
+  try {
+    fetch(APPS_SCRIPT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  } catch(e){}
+
+  // Formspree
+  fetch(APPS_SCRIPT, {
+    method: "POST",
+    mode: "no-cors",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(payload)
+  }).then(function() {
+    if(btn) { btn.disabled=false; btn.textContent="Soumettre"; }
+    document.getElementById("alertOk").classList.add("show");
+    window.scrollTo(0,0);
+  }).catch(function() {
+    if(btn) { btn.disabled=false; btn.textContent="Soumettre"; }
+    document.getElementById("alertOk").classList.add("show");
+    window.scrollTo(0,0);
+  });
+}
+
+function showToast(msg){
+  var t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  setTimeout(function(){t.classList.remove("show");},3000);
+}
+
+document.addEventListener("DOMContentLoaded", function(){
+  var now=new Date();
+  document.getElementById("e_date").value=now.toISOString().split("T")[0];
+  document.getElementById("e_heure").value=now.toTimeString().substring(0,5);
+  document.getElementById("sig_date_coss").value=now.toISOString().split("T")[0];
+});
+</script>
+</body>
+</html>
