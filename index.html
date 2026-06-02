@@ -962,28 +962,10 @@ function soumettre() {
 
   // Apps Script
   try {
-    var done=false;
-    function succes(){if(done)return;done=true;var btn=document.getElementById("btn-sub");if(btn){btn.disabled=false;btn.textContent="✅ Envoyé avec succès!";}document.getElementById("alertOk").classList.add("show");window.scrollTo(0,0);setTimeout(function(){if(btn)btn.textContent="📤 Soumettre le rapport";},4000);}
     var urlEvt=APPS_URL+"?"+Object.keys(payload).map(function(k){return encodeURIComponent(k)+"="+encodeURIComponent(payload[k]||"");}).join("&");
-    try{fetch(urlEvt,{method:"GET",mode:"no-cors"}).then(function(){succes();}).catch(function(){succes();});}catch(e){var img=new Image();img.onload=img.onerror=function(){succes();};img.src=urlEvt;}
-    setTimeout(succes,3000);
+    var imgEvt=new Image(); imgEvt.onload=imgEvt.onerror=function(){};imgEvt.src=urlEvt;
+    setTimeout(function(){var btn=document.getElementById("btn-sub");if(btn){btn.disabled=false;btn.textContent="✅ Envoyé avec succès!";}document.getElementById("alertOk").classList.add("show");window.scrollTo(0,0);setTimeout(function(){if(btn)btn.textContent="📤 Soumettre le rapport";},4000);},2500);
   } catch(e){}
-
-  // Formspree
-  fetch(APPS_SCRIPT, {
-    method: "POST",
-    mode: "no-cors",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(payload)
-  }).then(function() {
-    if(btn) { btn.disabled=false; btn.textContent="Soumettre"; }
-    document.getElementById("alertOk").classList.add("show");
-    window.scrollTo(0,0);
-  }).catch(function() {
-    if(btn) { btn.disabled=false; btn.textContent="Soumettre"; }
-    document.getElementById("alertOk").classList.add("show");
-    window.scrollTo(0,0);
-  });
 }
 
 function showToast(msg){
